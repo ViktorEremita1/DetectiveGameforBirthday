@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Детектив Вики: Дело о Подарке</title>
+    <style>
+        :root {
+            --burgundy: #4b0013;
+            --gold: #d4af37;
+            --dark: #1a1a1a;
+            --light: #f4e7d3;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark);
+            color: var(--light);
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Зона стола (выложенные карты) */
+        #table-zone {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 2px solid var(--gold);
+            background: radial-gradient(circle, #2c0008 0%, #1a1a1a 100%);
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 10px;
+        }
+
+        .section-title {
+            width: 100%;
+            font-size: 0.8rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid var(--gold);
+        }
+
+        /* Статус игры */
+        #status-bar {
+            height: 30px;
+            background: var(--gold);
+            color: var(--burgundy);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* Зона руки */
+        #hand-zone {
+            height: 220px;
+            background: var(--burgundy);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Карточка */
+        .card {
+            width: 100px;
+            height: 150px;
+            background: var(--light);
+            border-radius: 8px;
+            color: var(--dark);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            box-sizing: border-box;
+            border: 2px solid var(--gold);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .card-table {
+            width: 80px;
+            height: 120px;
+            font-size: 0.7rem;
+        }
+
+        .card img {
+            width: 100%;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 0.7rem;
+            text-align: center;
+            margin-bottom: 3px;
+        }
+
+        .card-cost {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--gold);
+            color: var(--burgundy);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid var(--burgundy);
+        }
+
+        /* Кнопки действий */
+        .card-actions {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        button {
+            font-size: 0.6rem;
+            padding: 4px 0;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .btn-play { background: #2ecc71; color: white; }
+        .btn-discard { background: #e74c3c; color: white; }
+
+        /* Модальное окно финала */
+        #finale-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--burgundy);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .bot-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: var(--gold);
+            color: var(--burgundy);
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="status-bar">
+    <span id="deck-count">Колода: 51</span>
+    <span>Детектив: Вики</span>
+</div>
+
+<div id="table-zone">
+    <div class="section-title">Собрано улик и зацепок</div>
+    </div>
+
+<div id="hand-zone">
+    </div>
+
+<div id="finale-overlay">
+    <h1 style="color: var(--gold);">ДЕЛО ПОЧТИ РАСКРЫТО</h1>
+    <p>Все карты на столе. Остался последний шаг — связаться с агентом Анной Тень для финальной проверки.</p>
+    <a href="https://t.me/AnnaShadowBot" class="bot-link">СВЯЗАТЬСЯ С АННОЙ</a>
+</div>
+
+<script>
+    // ДАННЫЕ КАРТ (Сюда впиши свои 51 карту)
+    const cardData = [
+        { id: 1, title: "Заколка-отмычка", desc: "Сломана у сейфа", cost: 1, img: "https://via.placeholder.com/100x60" },
+        { id: 2, title: "Снотворное", desc: "Найдено на кухне", cost: 0, img: "https://via.placeholder.com/100x60" },
+        { id: 3, title: "Старый ключ", desc: "В кармане Ромарио", cost: 1, img: "https://via.placeholder.com/100x60" },
+        // ... добавь остальные карты здесь
+    ];
+
+    let deck = [...cardData];
+    let hand = [];
+    let table = [];
+    let isWaitingForPayment = false;
+    let cardToPayFor = null;
+
+    function initGame() {
+        deck.sort(() => Math.random() - 0.5); // Перемешать
+        for(let i=0; i<3; i++) drawCard();
+        render();
+    }
+
+    function drawCard() {
+        if (deck.length > 0 && hand.length < 3) {
+            hand.push(deck.pop());
+        }
+    }
+
+    function discardCard(index) {
+        if (isWaitingForPayment) {
+            processPayment(index);
+            return;
+        }
+        hand.splice(index, 1);
+        drawCard();
+        checkEndGame();
+        render();
+    }
+
+    function playCard(index) {
+        const card = hand[index];
+        if (card.cost === 1) {
+            if (hand.length < 2) {
+                alert("Недостаточно карт в руке для оплаты (нужна 1 любая карта)!");
+                return;
+            }
+            isWaitingForPayment = true;
+            cardToPayFor = index;
+            render();
+            return;
+        }
+        
+        moveToTable(index);
+    }
+
+    function processPayment(paymentIndex) {
+        if (paymentIndex === cardToPayFor) {
+            alert("Нельзя сбросить ту же карту, которую хочешь выложить!");
+            return;
+        }
+        // Удаляем оплату
+        hand.splice(paymentIndex, 1);
+        // Сдвигаем индекс основной карты, если она была после удаленной
+        if (paymentIndex < cardToPayFor) cardToPayFor--;
+        
+        moveToTable(cardToPayFor);
+        isWaitingForPayment = false;
+        cardToPayFor = null;
+    }
+
+    function moveToTable(index) {
+        table.push(hand[index]);
+        hand.splice(index, 1);
+        drawCard();
+        checkEndGame();
+        render();
+    }
+
+    function checkEndGame() {
+        if (hand.length === 0 && deck.length === 0) {
+            document.getElementById('finale-overlay').style.display = 'flex';
+        }
+    }
+
+    function render() {
+        const handZone = document.getElementById('hand-zone');
+        const tableZone = document.getElementById('table-zone');
+        const deckCount = document.getElementById('deck-count');
+
+        deckCount.innerText = `Колода: ${deck.length}`;
+        handZone.innerHTML = '';
+        
+        if (isWaitingForPayment) {
+            handZone.innerHTML = `<div style="width:100%; text-align:center; color:white; font-size:0.8rem">ВЫБЕРИ КАРТУ, КОТОРУЮ СБРОСИШЬ В ОПЛАТУ</div>`;
+        }
+
+        hand.forEach((card, i) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.innerHTML = `
+                <div class="card-cost">${card.cost}</div>
+                <img src="${card.img}">
+                <div class="card-title">${card.title}</div>
+                <div style="font-size:0.6rem; text-align:center">${card.desc}</div>
+                <div class="card-actions">
+                    ${!isWaitingForPayment ? `<button class="btn-play" onclick="playCard(${i})">На стол</button>` : ''}
+                    <button class="btn-discard" onclick="discardCard(${i})">${isWaitingForPayment ? 'Сбросить как оплату' : 'В сброс'}</button>
+                </div>
+            `;
+            handZone.appendChild(cardEl);
+        });
+
+        tableZone.innerHTML = '<div class="section-title">Собрано улик и зацепок</div>';
+        table.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card card-table';
+            cardEl.innerHTML = `
+                <div class="card-title">${card.title}</div>
+                <div style="font-size:0.5rem; text-align:center">${card.desc}</div>
+            `;
+            tableZone.appendChild(cardEl);
+        });
+    }
+
+    initGame();
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Детектив Вики: Дело о Подарке</title>
+    <style>
+        :root {
+            --burgundy: #4b0013;
+            --gold: #d4af37;
+            --dark: #1a1a1a;
+            --light: #f4e7d3;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark);
+            color: var(--light);
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Зона стола (выложенные карты) */
+        #table-zone {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 2px solid var(--gold);
+            background: radial-gradient(circle, #2c0008 0%, #1a1a1a 100%);
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 10px;
+        }
+
+        .section-title {
+            width: 100%;
+            font-size: 0.8rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid var(--gold);
+        }
+
+        /* Статус игры */
+        #status-bar {
+            height: 30px;
+            background: var(--gold);
+            color: var(--burgundy);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* Зона руки */
+        #hand-zone {
+            height: 220px;
+            background: var(--burgundy);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Карточка */
+        .card {
+            width: 100px;
+            height: 150px;
+            background: var(--light);
+            border-radius: 8px;
+            color: var(--dark);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            box-sizing: border-box;
+            border: 2px solid var(--gold);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .card-table {
+            width: 80px;
+            height: 120px;
+            font-size: 0.7rem;
+        }
+
+        .card img {
+            width: 100%;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 0.7rem;
+            text-align: center;
+            margin-bottom: 3px;
+        }
+
+        .card-cost {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--gold);
+            color: var(--burgundy);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid var(--burgundy);
+        }
+
+        /* Кнопки действий */
+        .card-actions {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        button {
+            font-size: 0.6rem;
+            padding: 4px 0;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .btn-play { background: #2ecc71; color: white; }
+        .btn-discard { background: #e74c3c; color: white; }
+
+        /* Модальное окно финала */
+        #finale-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--burgundy);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .bot-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: var(--gold);
+            color: var(--burgundy);
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="status-bar">
+    <span id="deck-count">Колода: 51</span>
+    <span>Детектив: Вики</span>
+</div>
+
+<div id="table-zone">
+    <div class="section-title">Собрано улик и зацепок</div>
+    </div>
+
+<div id="hand-zone">
+    </div>
+
+<div id="finale-overlay">
+    <h1 style="color: var(--gold);">ДЕЛО ПОЧТИ РАСКРЫТО</h1>
+    <p>Все карты на столе. Остался последний шаг — связаться с агентом Анной Тень для финальной проверки.</p>
+    <a href="https://t.me/ТВОЙ_БОТ" class="bot-link">СВЯЗАТЬСЯ С АННОЙ</a>
+</div>
+
+<script>
+    // ДАННЫЕ КАРТ (Сюда впиши свои 51 карту)
+    const cardData = [
+        { id: 1, title: "Фото перед пропажей", desc: "Внешний вид", cost: 1, img: "https://i.postimg.cc/25hpmRky/A4-5.png/100x60" },
+        { id: 2, title: "Показания Ромарио о неудачах ресторана", desc: "Показания Ромарио о неудачах ресторана", cost: 1, img: "https://i.postimg.cc/vmfRMFYB/A4-6.png/100x60" },
+        { id: 3, title: "Телефон Виктории", desc: "Переписка с исполнителем", cost: 4, img: "https://i.postimg.cc/BvHWs9Sn/A4-7.png/100x60" },
+        { id: 4, title: "Показания Грега о репутации ресторана", desc: "Очень плохо", cost: 2, img: "https://i.postimg.cc/B60rnYbj/A4-11.png/100x60" },
+        { id: 5, title: "Новости мира финансов", desc: "Виктория и Роман связаны", cost: 2, img: "https://i.postimg.cc/Qt32d4Ck/A4-14.png/100x60" },
+        { id: 6, title: "Выписка из банка", desc: "Перевод исполнителю", cost: 3, img: "https://i.postimg.cc/Tw6z3715/A4-12.png/100x60" },
+        { id: 7, title: "Интервью Романа", desc: "Служение, порядок и вера", cost: 2, img: "https://i.postimg.cc/sX4tQYG6/A4-18.png/100x60" },
+        { id: 8, title: "Статья об Алекс", desc: "Автор книг", cost: 2, img: "https://i.postimg.cc/rmNv01ty/A4-24.png/100x60" },
+        { id: 9, title: "Статья о Виктории", desc: "Стала успешной", cost: 3, img: "https://i.postimg.cc/BvHWs9Sn/A4-7.png/100x60" },
+        { id: 10, title: "Ваша комната", desc: "Открытый чемодан", cost: 1, img: "https://i.postimg.cc/XNxRngbJ/A4-49.png/100x60" },
+        { id: 11, title: "Показания Грега о себе", desc: "Моя работа — чувствовать энергию", cost: 2, img: "https://i.postimg.cc/KjcCn1nk/A4-33.png/A4-7.png/100x60" },
+        { id: 12, title: "Показания Грега об Алекс", desc: "У нее никого нет", cost: 3, img: "https://i.postimg.cc/C1sWBGfY/A4-23.png/100x60" },
+        { id: 13, title: "Комментарии к статье о Виктории", desc: "Она тебя сожрет", cost: 5, img: "https://i.postimg.cc/Kz268qjD/A4-13.png/100x60" },
+        { id: 14, title: "Подборка новостей", desc: "ДТП", cost: 6, img: "https://i.postimg.cc/C1g3xP5c/A4-16.png/100x60" },
+        { id: 15, title: "Показания Ромарио о Греге", desc: "Он влюблен в Алекс", cost: 1, img: "https://i.postimg.cc/RhC2cWcK/A4-34.png/100x60" },
+        { id: 16, title: "Рецензия на ресторан", desc: "Все круто", cost: 4, img: "https://i.postimg.cc/LXpc8C5T/A4-15.png/100x60" },
+        { id: 17, title: "Ромарио об Алекс", desc: "Мы знаем не все", cost: 6, img: "https://i.postimg.cc/fyW1xVxW/A4-28.png/100x60" },
+        { id: 18, title: "Склад снотворного", desc: "Откуда это", cost: 7, img: "https://i.postimg.cc/TwJZLV5c/A4-17.png/100x60" },
+        { id: 19, title: "Роман об Алекс", desc: "Я ее вдохновлял", cost: 3, img: "https://i.postimg.cc/D0fRqSqk/A4-25.png/100x60" },
+        { id: 20, title: "Алекс о Романе", desc: "Он — тиран", cost: 5, img: "https://i.postimg.cc/8ckxh7hG/A4-26.png/100x60" },
+        { id: 21, title: "Новости о похищении", desc: "Терновый венец и гвозди", cost: 7, img: "https://i.postimg.cc/pTJghfnR/A4-22.png/100x60" },
+        { id: 22, title: "Новость о прослушке", desc: "Искажения на телефоне", cost: 8, img: "https://i.postimg.cc/J07Sbsb3/A4-35.png/100x60" },
+        { id: 23, title: "Обратная сторона комнаты", desc: "Тут что-то странное", cost: 3, img: "https://i.postimg.cc/J7KfRQLs/A4-51.png/100x60" },
+        { id: 24, title: "Интервью главы ордена", desc: "Роман — Глава", cost: 4, img: "https://i.postimg.cc/fLf6tcSF/A4-19.png/100x60" },
+        { id: 25, title: "Показания Романа о жене", desc: "Она помогает", cost: 4, img: "https://i.postimg.cc/3RFP4X0c/A4-20.png/100x60" },
+        { id: 26, title: "Статья о сыне Алекс", desc: "Выдумала свою жизнь", cost: 5, img: "https://i.postimg.cc/fyW1xVxw/A4-27.png/100x60" },
+        { id: 27, title: "Показания Алекс о взломе", desc: "Не было отмычки", cost: 8, img: "https://i.postimg.cc/RhPyGvR8/A4-46.png/100x60" },
+        { id: 28, title: "Отмычка", desc: "Первая улика", cost: 4, img: "https://i.postimg.cc/QNS2jq3d/A4-48.png/100x60" },
+        { id: 29, title: "Показания Ромарио о сейфе", desc: "Ключ в единственном экземпляре", cost: 5, img: "https://i.postimg.cc/8cy9wTHj/A4-38.png/100x60" },
+        { id: 30, title: "Показания Алекс о новой книге", desc: "И о сыне", cost: 4, img: "https://i.postimg.cc/sxfbpMpX/A4-31.png/100x60" },
+        { id: 31, title: "Телефон Алекс", desc: "Шантаж", cost: 9, img: "https://i.postimg.cc/d3WpnJBN/A4-44.png/100x60" },
+        { id: 32, title: "Телефон Грега", desc: "Тут про дочь", cost: 10, img: "https://i.postimg.cc/nrVNvXv4/A4-37.png/100x60" },
+        { id: 33, title: "Показания Виктории о Романе", desc: "Человек с высокими идеалами", cost: 5, img: "https://i.postimg.cc/ZRx1B8yk/A4-21.png/100x60" },
+        { id: 34, title: "Показания Виктории о своем отсутствии", desc: "Был важный созвон", cost: 6, img: "https://i.postimg.cc/44wDX1gt/A4-52.png/100x60" },
+        { id: 35, title: "Статья о Грег и Алекс", desc: "Грег — отец", cost: 7, img: "https://i.postimg.cc/Vvs2jJjL/A4-29.png/100x60" },
+        { id: 36, title: "Показания Алекс об отсутствии", desc: "Женские делишки", cost: 9, img: "https://i.postimg.cc/v8XJGvsm/A4-50.png/100x60" },
+        { id: 37, title: "Секретное досье", desc: "Кто-то знакомый", cost: 10, img: "https://i.postimg.cc/x8shg9RM/A4-39.png/100x60" },
+        { id: 38, title: "Показания Виктории о Греге", desc: "Он неисправим", cost: 6, img: "https://i.postimg.cc/pr04kPZq/A4-43.png/100x60" },
+        { id: 39, title: "Алекс популярна", desc: "Благодаря скандалу", cost: 7, img: "https://i.postimg.cc/vT8CW4Wm/A4-30.png/100x60" },
+        { id: 40, title: "Показания Ромарио о творчестве Алекс", desc: "Я фанат ее таланта", cost: 8, img: "[A4-45.png](https://postimg.cc/hQd2tWN9)/100x60" },
+        { id: 41, title: "Показания Грега об отсутствующих", desc: "Не было троих", cost: 10, img: "https://i.postimg.cc/3r9s3ZT3/A4-47.png/100x60" },
+        { id: 42, title: "Показания Ромарио о визите Грега", desc: "Он заинтересовался сейфом", cost: 8, img: "https://i.postimg.cc/Znf2jJcP/A4-40.png/100x60" },
+        { id: 43, title: "Показания Грега о своем визите", desc: "Какой сейф?", cost: 9, img: "https://i.postimg.cc/7hBdXqVN/A4-41.png/100x60" },
+        { id: 44, title: "Записка", desc: "Пора действовать", cost: 10, img: "https://i.postimg.cc/BbhkNJgN/A4-42.png/100x60" },
+        { id: 45, title: "Показания Ромарио о своем отсутствии", desc: "Я испугался", cost: 7, img: "https://i.postimg.cc/gc4CGKW3/A4-53.png/100x60" },
+       
+    ];
+
+    let deck = [...cardData];
+    let hand = [];
+    let table = [];
+    let isWaitingForPayment = false;
+    let cardToPayFor = null;
+
+    function initGame() {
+        deck.sort(() => Math.random() - 0.5); // Перемешать
+        for(let i=0; i<3; i++) drawCard();
+        render();
+    }
+
+    function drawCard() {
+        if (deck.length > 0 && hand.length < 3) {
+            hand.push(deck.pop());
+        }
+    }
+
+    function discardCard(index) {
+        if (isWaitingForPayment) {
+            processPayment(index);
+            return;
+        }
+        hand.splice(index, 1);
+        drawCard();
+        checkEndGame();
+        render();
+    }
+
+    function playCard(index) {
+        const card = hand[index];
+        if (card.cost === 1) {
+            if (hand.length < 2) {
+                alert("Недостаточно карт в руке для оплаты (нужна 1 любая карта)!");
+                return;
+            }
+            isWaitingForPayment = true;
+            cardToPayFor = index;
+            render();
+            return;
+        }
+        
+        moveToTable(index);
+    }
+
+    function processPayment(paymentIndex) {
+        if (paymentIndex === cardToPayFor) {
+            alert("Нельзя сбросить ту же карту, которую хочешь выложить!");
+            return;
+        }
+        // Удаляем оплату
+        hand.splice(paymentIndex, 1);
+        // Сдвигаем индекс основной карты, если она была после удаленной
+        if (paymentIndex < cardToPayFor) cardToPayFor--;
+        
+        moveToTable(cardToPayFor);
+        isWaitingForPayment = false;
+        cardToPayFor = null;
+    }
+
+    function moveToTable(index) {
+        table.push(hand[index]);
+        hand.splice(index, 1);
+        drawCard();
+        checkEndGame();
+        render();
+    }
+
+    function checkEndGame() {
+        if (hand.length === 0 && deck.length === 0) {
+            document.getElementById('finale-overlay').style.display = 'flex';
+        }
+    }
+
+    function render() {
+        const handZone = document.getElementById('hand-zone');
+        const tableZone = document.getElementById('table-zone');
+        const deckCount = document.getElementById('deck-count');
+
+        deckCount.innerText = `Колода: ${deck.length}`;
+        handZone.innerHTML = '';
+        
+        if (isWaitingForPayment) {
+            handZone.innerHTML = `<div style="width:100%; text-align:center; color:white; font-size:0.8rem">ВЫБЕРИ КАРТУ, КОТОРУЮ СБРОСИШЬ В ОПЛАТУ</div>`;
+        }
+
+        hand.forEach((card, i) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.innerHTML = `
+                <div class="card-cost">${card.cost}</div>
+                <img src="${card.img}">
+                <div class="card-title">${card.title}</div>
+                <div style="font-size:0.6rem; text-align:center">${card.desc}</div>
+                <div class="card-actions">
+                    ${!isWaitingForPayment ? `<button class="btn-play" onclick="playCard(${i})">На стол</button>` : ''}
+                    <button class="btn-discard" onclick="discardCard(${i})">${isWaitingForPayment ? 'Сбросить как оплату' : 'В сброс'}</button>
+                </div>
+            `;
+            handZone.appendChild(cardEl);
+        });
+
+        tableZone.innerHTML = '<div class="section-title">Собрано улик и зацепок</div>';
+        table.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card card-table';
+            cardEl.innerHTML = `
+                <div class="card-title">${card.title}</div>
+                <div style="font-size:0.5rem; text-align:center">${card.desc}</div>
+            `;
+            tableZone.appendChild(cardEl);
+        });
+    }
+
+    initGame();
+</script>
+
+</body>
+</html>
