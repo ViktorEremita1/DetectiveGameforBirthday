@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Детектив Вики: Дело №2024</title>
+    <style>
+        :root {
+            --burgundy: #4b0013;
+            --gold: #d4af37;
+            --dark: #121212;
+            --light: #f4e7d3;
+            --card-w: 160px; 
+            --card-h: 240px;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--dark);
+            color: var(--light);
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex; flex-direction: column;
+            touch-action: none;
+        }
+
+        /* --- НУАРНЫЕ ЭФФЕКТЫ --- */
+        body::after {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 150%);
+            pointer-events: none; z-index: 1000;
+        }
+
+        .film-grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.04; pointer-events: none; z-index: 1001;
+            background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+            animation: grain 1s steps(10) infinite;
+        }
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-1%, -1%); }
+            50% { transform: translate(-0.5%, 0.5%); }
+        }
+
+        /* Экраны */
+        #start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #2c0008 0%, #121212 100%);
+            z-index: 600; display: flex; flex-direction: column;
+            justify-content: flex-end; align-items: center; padding-bottom: 50px;
+        }
+        #start-screen::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://i.postimg.cc/NGZPkK8S/Oblozka.png') no-repeat center center;
+            background-size: contain; z-index: -1;
+            filter: grayscale(0.3) contrast(1.1);
+        }
+
+        #intro-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #3d000f 0%, #121212 100%);
+            z-index: 500; display: none; flex-direction: column;
+            align-items: center; text-align: center; padding: 20px; box-sizing: border-box; overflow-y: auto;
+        }
+
+        .intro-text {
+            width: 90%; max-width: 850px; text-align: left; line-height: 1.6;
+            margin: 20px 0; background: rgba(0,0,0,0.8); padding: 30px;
+            border-radius: 4px; border-left: 3px solid var(--gold);
+            font-size: 1rem; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        .btn-start {
+            padding: 15px 40px; background: var(--gold); color: var(--burgundy);
+            font-size: 1.1rem; font-weight: bold; border-radius: 2px;
+            cursor: pointer; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            text-transform: uppercase; letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        #status-bar {
+            height: 50px; background: var(--gold); color: var(--burgundy);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px; font-weight: bold; font-size: 0.85rem; z-index: 300;
+        }
+
+        .hint-text { font-size: 0.65rem; opacity: 0.8; margin-left: 10px; font-weight: normal; letter-spacing: 1px; }
+
+        #table-zone {
+            position: absolute; top: 50px; left: 0; right: 0; bottom: 320px;
+            padding: 30px; overflow-y: auto;
+            background: radial-gradient(circle, #3d000f 0%, #1a1a1a 100%);
+            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
+            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .zone-hint {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: var(--gold); opacity: 0.15; font-size: 1.5rem; text-align: center;
+            pointer-events: none; width: 80%; text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        @keyframes appearWithWobble {
+            0% { transform: scale(1.1) rotate(0deg); opacity: 0; }
+            100% { transform: rotate(var(--rand-rot)); opacity: 1; }
+        }
+
+        .table-card {
+            animation: appearWithWobble 0.5s ease-out forwards;
+            margin: 5px;
+        }
+        
+        .card {
+            width: var(--card-w); height: var(--card-h); background: #eee; padding: 6px;
+            border-radius: 2px; position: relative; display: flex; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6); flex-shrink: 0;
+            user-select: none; touch-action: none; cursor: grab;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.9);
+            z-index: 100;
+        }
+        .table-card:hover {
+            transform: rotate(var(--rand-rot)) scale(1.05) !important;
+            z-index: 110;
+        }
+
+        #game-controls-wrapper {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 320px;
+            z-index: 200; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #game-controls-wrapper.hidden { transform: translateY(320px); }
+
+        #game-controls {
+            height: 100%; background: #220008;
+            display: grid; grid-template-columns: 140px 1fr 240px;
+            align-items: center; padding: 0 15px; border-top: 2px solid var(--gold);
+        }
+
+        #toggle-view-btn {
+            position: absolute; top: -40px; right: 30px;
+            background: var(--gold); color: var(--burgundy);
+            border: none; padding: 8px 25px; font-weight: bold;
+            border-radius: 4px 4px 0 0; cursor: pointer;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5); font-family: 'Georgia', serif; font-size: 0.85rem;
+        }
+
+        .pile-container { 
+            display: flex; flex-direction: column; align-items: center; 
+            color: var(--gold); font-size: 0.75rem; height: 280px; justify-content: center;
+            text-transform: uppercase; letter-spacing: 1px;
+            position: relative;
+        }
+        
+        .archive-hint {
+            font-size: 0.7rem; color: var(--gold); margin-top: 10px; text-align: center; 
+            max-width: 200px; line-height: 1.3; pointer-events: none; font-weight: bold;
+            border: 2px solid var(--gold); padding: 10px; border-radius: 6px; 
+            background: rgba(75, 0, 19, 0.6); box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            letter-spacing: 0.5px;
+        }
+
+        #deck-visual, #archive-visual { position: relative; width: 90px; height: 135px; margin: 10px auto; }
+        
+        #progress-mini-container {
+            width: 160px; margin-top: 15px; text-align: center;
+        }
+        #progress-mini-bar-bg {
+            width: 100%; height: 6px; background: rgba(212, 175, 55, 0.1);
+            border-radius: 3px; overflow: hidden; margin-top: 6px; border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        #progress-mini-bar-fill {
+            width: 10%; height: 100%; background: var(--gold);
+            box-shadow: 0 0 10px var(--gold); transition: width 0.5s ease;
+        }
+        .mini-label { font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; }
+
+        .card-back {
+            width: 90px; height: 135px; background-size: 100% 100%;
+            border-radius: 4px; position: absolute; filter: brightness(0.8);
+            box-shadow: -2px 2px 5px rgba(0,0,0,0.4);
+        }
+
+        #hand-zone { display: flex; justify-content: center; gap: 20px; width: 100%; height: 100%; align-items: center; }
+
+        .card.dragging { cursor: grabbing; z-index: 1000; opacity: 0.9; box-shadow: 0 20px 40px rgba(0,0,0,0.8); transform: scale(1.05); }
+        .card img { width: 100%; height: 100%; object-fit: cover; filter: sepia(0.2) contrast(1.1); pointer-events: none; }
+        
+        .card-cost {
+            position: absolute; top: -12px; right: -12px; background: var(--gold);
+            color: var(--burgundy); width: 32px; height: 32px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-weight: bold;
+            border: 2px solid var(--burgundy); z-index: 10; font-size: 1.1rem; pointer-events: none;
+        }
+
+        .final-box {
+            background: rgba(10,0,5,0.98); padding: 20px; border: 1px solid var(--gold);
+            text-align: center; width: 95%; max-width: 750px; color: var(--light);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            max-height: 280px; display: flex; flex-direction: column;
+        }
+        .final-content {
+            overflow-y: auto; padding-right: 15px; margin-bottom: 15px;
+            scrollbar-width: thin; scrollbar-color: var(--gold) transparent;
+        }
+        .final-content::-webkit-scrollbar { width: 4px; }
+        .final-content::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
+        #zoom-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center;
+        }
+        #zoom-overlay img { max-width: 85%; max-height: 85%; border: 1px solid var(--gold); }
+        
+        .flying-card {
+            position: fixed; pointer-events: none; z-index: 9999;
+            background-size: 100% 100%; border-radius: 4px;
+            transition: all 0.6s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+        
+        .audio-btn { 
+            background: var(--burgundy); color: var(--gold); border: 1px solid var(--gold); 
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem;
+            min-width: 90px; font-weight: bold;
+        }
+        input[type=range] { cursor: pointer; width: 50px; accent-color: var(--burgundy); }
+    </style>
+</head>
+<body>
+
+<div class="film-grain"></div>
+
+<div id="start-screen">
+    <button class="btn-start" onclick="initGame()">Начать</button>
+</div>
+
+<div id="intro-screen">
+    <h1 style="color: var(--gold); letter-spacing: 5px;">ДЕТЕКТИВ ВИКИ</h1>
+    <div class="intro-text">
+        На часах 23:50. Пять минут назад твой муж запер все двери загородного особняка, в котором вы отмечали твой день рождения, и попросил всех собраться в гостиной. Он подошел к тебе, своей жене, и сказал: «Подарок пропал. Я боюсь, что его украли. Никому не могу доверять, даже себе. Боюсь, придется тебе прервать праздник и найти его». <br><br>
+        В этот день что-то должно пойти не так. Ты знаешь, что каждый из них хранит свои тайны, опасные тайны, но почему хотя бы сегодня все не могло пройти без происшествий. Но они и не догадываются о твоей тайне. Что ж, пусть этот вечер станет днем, когда покров тайны будет сорван с вашей компании, и ты станешь первой. <br><br>
+        Все знают, что ты работаешь успешным медиа-аналитиком, но никто и не догадывается, что это лишь прикрытие. На самом деле твой начальник — это государственное управление по безопасности, а ты — агент секретной контрразведки. Пожалуй, ты больше не хочешь, чтобы это было тайной для твоих лучших друзей. Ты рассказываешь об этом. <br><br>
+        При этих словах каждый из гостей заметно забеспокоилcz. Что происходит в их головах? Какие секреты там хранятся? И самое главное, кто похитил твой подарок? Сумеешь ли ты найти его? И сколько чужих секретов при этом вскроется? <br><br>
+        Прежде чем ты начнешь, помни, что каждая улика имеет свою ценность, но не каждая из них поведет тебя по правильному пути. В процессе расследования ты сможешь убирать карты в архив. В зависимости от того, сколько карт ты убрала, ты сможешь выкладывать более значимые улики. Ценность каждой улики обозначена в углу под лупой. Чтобы выложить самую ценную улику, тебе нужно убрать в архив 10 улик. <br><br>
+        Удачи в расследовании!
+    </div>
+    <button class="btn-start" onclick="startGame()">К расследованию</button>
+</div>
+
+<div id="status-bar">
+    <div>
+        <span>МАТЕРИАЛЫ ДЕЛА</span>
+        <span class="hint-text">(НАЖМИ ДЛЯ УВЕЛИЧЕНИЯ)</span>
+    </div>
+    <div class="audio-controls">
+        <input type="range" min="0" max="1" step="0.1" value="0.3" oninput="changeVolume(this.value)">
+        <button id="music-toggle" class="audio-btn" onclick="toggleMusic()">МУЗЫКА: ВКЛ</button>
+        <button id="sfx-toggle" class="audio-btn" onclick="toggleSfx()">ЗВУКИ: ВКЛ</button>
+    </div>
+</div>
+
+<div id="table-zone">
+    <div class="zone-hint" id="table-hint">Перетащи карту сюда, чтобы добавить к материалам дела</div>
+</div>
+
+<div id="game-controls-wrapper">
+    <button id="toggle-view-btn" onclick="toggleControls()">ПОКАЗАТЬ СТОЛ</button>
+    <div id="game-controls">
+        <div class="pile-container">
+            <span id="deck-count">КОЛОДА: 47</span>
+            <div id="deck-visual"></div>
+        </div>
+
+        <div id="hand-zone"></div>
+
+        <div class="pile-container">
+            <div id="archive-visual"></div>
+            <div class="archive-hint">Перетащи карту сюда, чтобы добавить в архив и увеличить уровень доступа</div>
+            <div id="progress-mini-container">
+                <div class="mini-label">УРОВЕНЬ ДОСТУПА: <span id="access-level">1</span>/10</div>
+                <div id="progress-mini-bar-bg">
+                    <div id="progress-mini-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="zoom-overlay" onclick="closeZoom()"><img id="zoomed-img" src=""></div>
+
+<script>
+    const musicUrl = "https://www.dropbox.com/scl/fi/gh7ukoms4htc48whcf15o/the-mystery-of-the-old-castle-182681.mp3?rlkey=tqx8vsdxpsv52ziff6nq1enj0&st=i65f08yk&raw=1";
+    const sfxUrl = "https://www.dropbox.com/scl/fi/6aw9ocf0uynv6y7jvs0cb/flipcard-91468.mp3?rlkey=9t64yzbe15fbq9wdppkxuitlc&st=zzn6hibe&raw=1";
+    const bgMusic = new Audio(musicUrl); bgMusic.loop = true; bgMusic.volume = 0.3;
+    const sfxPool = Array.from({length: 5}, () => new Audio(sfxUrl));
+    let currentSfxIdx = 0, isMusicMuted = false, isSfxMuted = false;
+
+    function initGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('intro-screen').style.display = 'flex';
+        bgMusic.play().catch(() => {});
+    }
+
+    function toggleMusic() {
+        isMusicMuted = !isMusicMuted; bgMusic.muted = isMusicMuted;
+        document.getElementById('music-toggle').innerText = isMusicMuted ? "МУЗЫКА: ВЫКЛ" : "МУЗЫКА: ВКЛ";
+    }
+    function changeVolume(v) { bgMusic.volume = v; }
+    function toggleSfx() {
+        isSfxMuted = !isSfxMuted;
+        document.getElementById('sfx-toggle').innerText = isSfxMuted ? "ЗВУКИ: ВЫКЛ" : "ЗВУКИ: ВКЛ";
+    }
+    function playSfx() {
+        if (isSfxMuted) return;
+        const s = sfxPool[currentSfxIdx]; s.currentTime = 0; s.play().catch(() => {});
+        currentSfxIdx = (currentSfxIdx + 1) % sfxPool.length;
+    }
+
+    const cardBackUrl = "https://i.postimg.cc/Qx5Y4jSR/Rubaska2.png";
+    const realCardData = [
+        { id: 1, img: "https://i.postimg.cc/Fs2G3w42/1.png", cost: 1 },
+        { id: 2, img: "https://i.postimg.cc/dtznrgYf/2.png", cost: 1 },
+        { id: 3, img: "https://i.postimg.cc/Hsf3XFgh/3.png", cost: 2 },
+        { id: 4, img: "https://i.postimg.cc/15LMwbQ2/4.png", cost: 1 },
+        { id: 5, img: "https://i.postimg.cc/Bv3gwDt8/5.png", cost: 2 },
+        { id: 6, img: "https://i.postimg.cc/gJSHJTsX/6.png", cost: 3 },
+        { id: 7, img: "https://i.postimg.cc/ydQydbjt/7.png", cost: 2 },
+        { id: 8, img: "https://i.postimg.cc/tJstVNvr/8.png", cost: 2 },
+        { id: 9, img: "https://i.postimg.cc/J0S33H9X/9.png", cost: 3 },
+        { id: 10, img: "https://i.postimg.cc/J7FQCSGC/10.png", cost: 4 },
+        { id: 11, img: "https://i.postimg.cc/sDZ4jKh0/11.png", cost: 1 },
+        { id: 12, img: "https://i.postimg.cc/Mp2bvR7P/12.png", cost: 2 },
+        { id: 13, img: "https://i.postimg.cc/zGZSVWCP/13.png", cost: 3 },
+        { id: 14, img: "https://i.postimg.cc/pLfQ8Tk2/14.png", cost: 5 },
+        { id: 15, img: "https://i.postimg.cc/8zRdW5wW/15.png", cost: 6 },
+        { id: 16, img: "https://i.postimg.cc/LsvzCbrG/16.png", cost: 7 },
+        { id: 17, img: "https://i.postimg.cc/wBFhfGSC/17.png", cost: 4 },
+        { id: 18, img: "https://i.postimg.cc/wvvDSkzq/18.png", cost: 6 },
+        { id: 19, img: "https://i.postimg.cc/5008ZmJj/19.png", cost: 7 },
+        { id: 20, img: "https://i.postimg.cc/rmm5v9TR/20.png", cost: 3 },
+        { id: 21, img: "https://i.postimg.cc/W330Q7Vk/21.png", cost: 5 },
+        { id: 22, img: "https://i.postimg.cc/G22vZjRG/22.png", cost: 7 },
+        { id: 23, img: "https://i.postimg.cc/tTTFLzb3/23.png", cost: 8 },
+        { id: 24, img: "https://i.postimg.cc/gJJ3fKps/24.png", cost: 3 },
+        { id: 25, img: "https://i.postimg.cc/wvGDHsxm/25.png", cost: 4 },
+        { id: 26, img: "https://i.postimg.cc/MTF1xjZ1/26.png", cost: 4 },
+        { id: 27, img: "https://i.postimg.cc/2yLh58Vm/27.png", cost: 5 },
+        { id: 28, img: "https://i.postimg.cc/Y0LYSqhB/28.png", cost: 8 },
+        { id: 29, img: "https://i.postimg.cc/hvQTGPfF/29.png", cost: 9 },
+        { id: 30, img: "https://i.postimg.cc/mk1Cr2tZ/30.png", cost: 4 },
+        { id: 31, img: "https://i.postimg.cc/tJnWgCYg/31.png", cost: 5 },
+        { id: 32, img: "https://i.postimg.cc/RhJK0VNq/32.png", cost: 6 },
+        { id: 33, img: "https://i.postimg.cc/brSkvNss/33.png", cost: 9 },
+        { id: 34, img: "https://i.postimg.cc/Fzk3Ks7f/34.png", cost: 10 },
+        { id: 35, img: "https://i.postimg.cc/3WMp05vx/35.png", cost: 5 },
+        { id: 36, img: "https://i.postimg.cc/gr9RLFZL/36.png", cost: 6 },
+        { id: 37, img: "https://i.postimg.cc/5jcvQdCm/37.png", cost: 7 },
+        { id: 38, img: "https://i.postimg.cc/bdXbSctk/38.png", cost: 9 },
+        { id: 39, img: "https://i.postimg.cc/qgfn6V31/39.png", cost: 10 },
+        { id: 40, img: "https://i.postimg.cc/MZnFB7Qg/40.png", cost: 6 },
+        { id: 41, img: "https://i.postimg.cc/Kc1HTPTX/41.png", cost: 7 },
+        { id: 42, img: "https://i.postimg.cc/CMRQ8G8V/42.png", cost: 8 },
+        { id: 43, img: "https://i.postimg.cc/Kc1HTPTb/43.png", cost: 10 },
+        { id: 44, img: "https://i.postimg.cc/3rkcGXGr/44.png", cost: 7 },
+        { id: 45, img: "https://i.postimg.cc/qBN5KsKg/45.png", cost: 8 },
+        { id: 46, img: "https://i.postimg.cc/wxnbQ15y/46.png", cost: 9 },
+        { id: 47, img: "https://i.postimg.cc/CM96sRCt/47.png", cost: 10 }
+    ];
+
+    let deck = [...realCardData].reverse(), hand = [], table = [], archiveCount = 1, isControlsHidden = false;
+
+    function startGame() {
+        document.getElementById('intro-screen').style.display = 'none';
+        for(let i=0; i<3; i++) setTimeout(() => drawCardWithAnim(), i*300);
+    }
+
+    function toggleControls() {
+        const wrapper = document.getElementById('game-controls-wrapper');
+        const tableZone = document.getElementById('table-zone');
+        const btn = document.getElementById('toggle-view-btn');
+        isControlsHidden = !isControlsHidden;
+        if (isControlsHidden) {
+            wrapper.classList.add('hidden');
+            tableZone.style.bottom = '0px';
+            btn.innerText = 'ПОКАЗАТЬ РУКУ';
+        } else {
+            wrapper.classList.remove('hidden');
+            tableZone.style.bottom = '320px';
+            btn.innerText = 'ПОКАЗАТЬ СТОЛ';
+        }
+    }
+
+    function createFlyingCard(start, end, img, rotate = false) {
+        const fly = document.createElement('div');
+        fly.className = 'flying-card';
+        fly.style.backgroundImage = `url(${img})`;
+        fly.style.width = start.width + 'px'; fly.style.height = start.height + 'px';
+        fly.style.left = start.left + 'px'; fly.style.top = start.top + 'px';
+        document.body.appendChild(fly);
+        playSfx();
+        requestAnimationFrame(() => {
+            fly.style.left = end.left + 'px'; fly.style.top = end.top + 'px';
+            fly.style.width = end.width + 'px'; fly.style.height = end.height + 'px';
+            if (rotate) fly.style.transform = 'rotateY(180deg)';
+            fly.style.opacity = '0';
+        });
+        setTimeout(() => fly.remove(), 600);
+    }
+
+    function drawCardWithAnim() {
+        if (deck.length > 0 && hand.length < 3) {
+            const card = deck.pop();
+            const start = document.getElementById('deck-visual').getBoundingClientRect();
+            const end = { left: window.innerWidth/2 - 80, top: window.innerHeight - 300, width: 160, height: 240 };
+            createFlyingCard(start, end, cardBackUrl, true);
+            setTimeout(() => { hand.push(card); render(); }, 500);
+        }
+    }
+
+    function playCard(idx) {
+        if (hand[idx] && archiveCount >= hand[idx].cost) {
+            const card = hand.splice(idx, 1)[0];
+            card.rot = (Math.random() * 6 - 3).toFixed(2); 
+            table.push(card);
+            playSfx();
+            drawCardWithAnim();
+            render();
+        }
+    }
+
+    function discardToArchive(idx) {
+        if (hand[idx]) {
+            hand.splice(idx, 1);
+            archiveCount++;
+            playSfx();
+            drawCardWithAnim();
+            render();
+        }
+    }
+
+    function initDrag(el, index) {
+        let startX, startY, isDragging = false;
+        const canPlay = archiveCount >= hand[index].cost;
+
+        el.onpointerdown = (e) => {
+            if (e.button !== 0 && e.pointerType === 'mouse') return;
+            el.setPointerCapture(e.pointerId);
+            startX = e.clientX; startY = e.clientY;
+            isDragging = false;
+
+            el.onpointermove = (moveE) => {
+                const dx = moveE.clientX - startX;
+                const dy = moveE.clientY - startY;
+                if (!isDragging && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+                    isDragging = true;
+                    el.classList.add('dragging');
+                }
+                if (isDragging) {
+                    el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 20}deg) scale(1.05)`;
+                }
+            };
+
+            el.onpointerup = (upE) => {
+                el.releasePointerCapture(upE.pointerId);
+                el.onpointermove = null; el.onpointerup = null;
+
+                if (!isDragging) {
+                    zoom(hand[index].img);
+                } else {
+                    el.classList.remove('dragging');
+                    const tableZone = document.getElementById('table-zone').getBoundingClientRect();
+                    const archiveZone = document.querySelector('.pile-container:last-child').getBoundingClientRect();
+
+                    if (upE.clientY < tableZone.bottom && canPlay) {
+                        playCard(index);
+                    } else if (upE.clientX > archiveZone.left && upE.clientY > archiveZone.top - 100) {
+                        discardToArchive(index);
+                    } else {
+                        el.style.transition = "transform 0.3s ease";
+                        el.style.transform = "translate(0,0)";
+                        setTimeout(() => el.style.transition = "", 300);
+                    }
+                }
+            };
+        };
+    }
+
+    function render() {
+        const hz = document.getElementById('hand-zone'); hz.innerHTML = '';
+        if (hand.length === 0 && deck.length === 0) {
+            hz.innerHTML = `
+                <div class="final-box">
+                    <div class="final-content">
+                        <h3 style="color:var(--gold); margin-top:0; letter-spacing: 2px;">ЭТО БЫЛА ПОСЛЕДНЯЯ УЛИКА</h3>
+                        <p>Еще раз внимательно изучи улики и сделай свои выводы. Когда будешь готова подвести итог — возьми и переверни эту карту.</p>
+                        <p>Тайны, обманы, шантаж, воровство и, кажется, что-то сверхестественное. Похоже, ты совсем не знала своих друзей. Но вот они — все перед тобой и ждут твоих слов. Кого ты обвинишь в пропаже своего подарка?</p>
+                        <p style="font-style: italic; color: #aaa; font-size: 0.9rem;">Быть может ты уже знаешь, кто совершил преступление. Возможно, ты даже догадываешься, где нужно поискать подарок. Но прежде чем огласить свой вердикт, лучше связаться со штабом и посоветоваться с твоим коллегой.</p>
+                    </div>
+                    <button class="btn-start" onclick="window.open('https://t.me/AnnaShadowBot', '_blank')">Связаться с Анной Тень</button>
+                </div>
+            `;
+        } else {
+            hand.forEach((c, i) => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                const canPlay = archiveCount >= c.cost;
+                if (!canPlay) div.style.filter = "grayscale(0.7) brightness(0.6)";
+                div.innerHTML = `<div class="card-cost">${c.cost}</div><img src="${c.img}">`;
+                hz.appendChild(div);
+                initDrag(div, i);
+            });
+        }
+
+        const tz = document.getElementById('table-zone'); 
+        const hint = document.getElementById('table-hint');
+        const cardsOnTable = tz.querySelectorAll('.table-card');
+        cardsOnTable.forEach(c => c.remove());
+        
+        if (table.length > 0) hint.style.display = 'none';
+        else hint.style.display = 'block';
+
+        table.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'card table-card'; 
+            div.style.width = '130px'; div.style.height = '190px';
+            div.style.setProperty('--rand-rot', (c.rot || 0) + 'deg');
+            div.innerHTML = `<img src="${c.img}" style="height:100%;">`;
+            // Переносим обработчик клика на контейнер для работы зума
+            div.onclick = () => zoom(c.img);
+            div.style.cursor = 'zoom-in';
+            tz.appendChild(div);
+        });
+        updatePiles();
+    }
+
+    function updatePiles() {
+        const dv = document.getElementById('deck-visual'); dv.innerHTML = '';
+        const av = document.getElementById('archive-visual'); av.innerHTML = '';
+        const fill = document.getElementById('progress-mini-bar-fill');
+        const access = document.getElementById('access-level');
+        const percent = Math.min((archiveCount / 10) * 100, 100);
+        fill.style.width = percent + '%';
+        access.innerText = archiveCount; 
+        
+        for(let i=0; i<Math.min(deck.length, 5); i++) {
+            const b = document.createElement('div'); b.className = 'card-back';
+            b.style.left = (i*2)+'px'; b.style.top = -(i*2)+'px';
+            b.style.backgroundImage = `url(${cardBackUrl})`; dv.appendChild(b);
+        }
+        for(let i=0; i<Math.min(archiveCount, 5); i++) {
+            const b = document.createElement('div'); b.className = 'card-back';
+            b.style.left = (i*2)+'px'; b.style.top = -(i*2)+'px';
+            b.style.backgroundImage = `url(${cardBackUrl})`; av.appendChild(b);
+        }
+        document.getElementById('deck-count').innerText = `КОЛОДА: ${deck.length}`;
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === "1") playCard(0); if (e.key === "2") discardToArchive(0);
+        if (e.key === "3") playCard(1); if (e.key === "4") discardToArchive(1);
+        if (e.key === "5") playCard(2); if (e.key === "6") discardToArchive(2);
+        if (e.key === "Escape") closeZoom();
+    });
+
+    function zoom(s) { 
+        document.getElementById('zoomed-img').src = s; 
+        document.getElementById('zoom-overlay').style.display = 'flex'; 
+    }
+    function closeZoom() { document.getElementById('zoom-overlay').style.display = 'none'; }
+</script>
+</body>
+</html>
