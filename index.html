@@ -8,9 +8,8 @@
         :root {
             --burgundy: #4b0013;
             --gold: #d4af37;
-            --dark: #1a1a1a;
+            --dark: #121212;
             --light: #f4e7d3;
-            /* Размеры увеличены */
             --card-w: 160px; 
             --card-h: 240px;
         }
@@ -23,415 +22,542 @@
             overflow: hidden;
             height: 100vh;
             display: flex; flex-direction: column;
+            touch-action: none;
         }
 
-        /* ЭКРАН СТАРТА */
-        #start-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, #5a0017 0%, #2c0008 100%);
-            z-index: 500; display: flex; flex-direction: column;
-            align-items: center; text-align: center;
-            padding: 10px 20px; box-sizing: border-box; overflow-y: auto;
-        }
-
-        .intro-text {
-            width: 95%; max-width: 900px; text-align: left;
-            line-height: 1.6; margin: 15px 0; font-size: 1rem;
-            color: #fff; background: rgba(0,0,0,0.5);
-            padding: 30px; border-radius: 10px; border-left: 5px solid var(--gold);
-        }
-
-        .btn-start {
-            margin: 20px 0 40px 0; padding: 18px 50px;
-            background: var(--gold); color: var(--burgundy);
-            font-size: 1.4rem; font-weight: bold; border-radius: 50px;
-            text-transform: uppercase; cursor: pointer; border: none;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
-        #status-bar {
-            height: 40px; background: var(--gold); color: var(--burgundy);
-            display: flex; justify-content: center; align-items: center;
-            font-weight: bold; z-index: 10; font-size: 0.9rem; letter-spacing: 2px;
-        }
-
-        /* ЗОНА СТОЛА */
-        #table-zone {
-            flex: 1; padding: 20px; overflow-y: auto;
-            background: radial-gradient(circle, #3d000f 0%, #1a1a1a 100%);
-            display: flex; flex-wrap: wrap; gap: 15px; justify-content: center;
-            align-content: flex-start;
-        }
-
-        /* НИЖНЯЯ ИГРОВАЯ ОБЛАСТЬ (Увеличена высота) */
-        #game-controls {
-            height: 380px; 
-            background: #2a000a;
-            display: grid;
-            grid-template-columns: 140px 1fr 140px;
-            align-items: center;
-            padding: 0 15px;
-            border-top: 3px solid var(--gold);
-            gap: 10px;
-        }
-
-        /* КОЛОДА И АРХИВ */
-        .pile-container {
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            font-size: 0.8rem; color: var(--gold); font-weight: bold;
-        }
-
-        /* Стилизация рубашки (теперь через background-image) */
-        .card-back {
-            width: 90px; height: 135px;
-            background-color: var(--burgundy);
-            background-size: cover;
-            background-position: center;
-            border: 2px solid var(--gold);
-            border-radius: 6px;
-            position: relative;
-            box-shadow: 3px 3px 12px rgba(0,0,0,0.6);
-        }
-
-        /* Стопка архива */
-        #archive-visual { position: relative; width: 90px; height: 135px; margin-top: 5px; }
-        .archive-offset-card {
-            position: absolute; top: 0; left: 0;
-            transition: all 0.3s;
-        }
-
-        /* РУКА */
-        #hand-zone {
-            display: flex; justify-content: center; align-items: center;
-            gap: 15px; height: 100%;
-        }
-
-        /* КАРТОЧКА (УВЕЛИЧЕНА) */
-        .card {
-            width: var(--card-w); height: var(--card-h);
-            background-color: white; padding: 6px;
-            box-sizing: border-box; box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            position: relative; display: flex; flex-direction: column;
-            border-radius: 6px; transition: transform 0.2s;
-        }
-
-        .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 3px; cursor: zoom-in; }
-        
-        .card-cost {
-            position: absolute; top: -10px; right: -10px;
-            background: var(--gold); color: var(--burgundy);
-            width: 32px; height: 32px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 1rem; font-weight: bold; border: 2px solid var(--burgundy);
-            z-index: 5;
-        }
-
-        .card-actions { margin-top: auto; display: flex; flex-direction: column; gap: 4px; padding-bottom: 2px; }
-        
-        button {
-            font-size: 0.75rem; padding: 8px 0; border: none; border-radius: 4px;
-            text-transform: uppercase; cursor: pointer; font-weight: bold;
-        }
-        .btn-play { background: #27ae60; color: white; }
-        .btn-play.disabled { background: #bdc3c7; color: #7f8c8d; cursor: default; }
-        .btn-discard { background: #c0392b; color: white; }
-
-        /* Табличные карты (тоже стали чуть больше) */
-        .card-table { width: 120px; height: 170px; }
-        .card-table img { height: 100%; }
-
-        /* АНИМАЦИОННЫЙ СЛОЙ */
-        #anim-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        /* --- НУАРНЫЕ ЭФФЕКТЫ --- */
+        body::after {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 150%);
             pointer-events: none; z-index: 1000;
         }
 
-        .flying-card {
-            position: absolute; width: var(--card-w); height: var(--card-h);
-            transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
-            transform-style: preserve-3d;
+        .film-grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.04; pointer-events: none; z-index: 1001;
+            background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+            animation: grain 1s steps(10) infinite;
+        }
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-1%, -1%); }
+            50% { transform: translate(-0.5%, 0.5%); }
         }
 
-        /* ВСПЛЫВАЮЩЕЕ ФОТО */
+        /* Экраны */
+        #start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #2c0008 0%, #121212 100%);
+            z-index: 600; display: flex; flex-direction: column;
+            justify-content: flex-end; align-items: center; padding-bottom: 50px;
+        }
+        #start-screen::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://i.postimg.cc/NGZPkK8S/Oblozka.png') no-repeat center center;
+            background-size: contain; z-index: -1;
+            filter: grayscale(0.3) contrast(1.1);
+        }
+
+        #intro-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #3d000f 0%, #121212 100%);
+            z-index: 500; display: none; flex-direction: column;
+            align-items: center; text-align: center; padding: 20px; box-sizing: border-box; overflow-y: auto;
+        }
+
+        .intro-text {
+            width: 90%; max-width: 850px; text-align: left; line-height: 1.6;
+            margin: 20px 0; background: rgba(0,0,0,0.8); padding: 30px;
+            border-radius: 4px; border-left: 3px solid var(--gold);
+            font-size: 1rem; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        .btn-start {
+            padding: 15px 40px; background: var(--gold); color: var(--burgundy);
+            font-size: 1.1rem; font-weight: bold; border-radius: 2px;
+            cursor: pointer; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            text-transform: uppercase; letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        #status-bar {
+            height: 50px; background: var(--gold); color: var(--burgundy);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px; font-weight: bold; font-size: 0.85rem; z-index: 300;
+        }
+
+        .hint-text { font-size: 0.65rem; opacity: 0.8; margin-left: 10px; font-weight: normal; letter-spacing: 1px; }
+
+        #table-zone {
+            position: absolute; top: 50px; left: 0; right: 0; bottom: 320px;
+            padding: 30px; overflow-y: auto;
+            background: radial-gradient(circle, #3d000f 0%, #1a1a1a 100%);
+            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
+            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .zone-hint {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: var(--gold); opacity: 0.15; font-size: 1.5rem; text-align: center;
+            pointer-events: none; width: 80%; text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        @keyframes appearWithWobble {
+            0% { transform: scale(1.1) rotate(0deg); opacity: 0; }
+            100% { transform: rotate(var(--rand-rot)); opacity: 1; }
+        }
+
+        .table-card {
+            animation: appearWithWobble 0.5s ease-out forwards;
+            margin: 5px;
+        }
+        
+        .card {
+            width: var(--card-w); height: var(--card-h); background: #eee; padding: 6px;
+            border-radius: 2px; position: relative; display: flex; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6); flex-shrink: 0;
+            user-select: none; touch-action: none; cursor: grab;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.9);
+            z-index: 100;
+        }
+        .table-card:hover {
+            transform: rotate(var(--rand-rot)) scale(1.05) !important;
+            z-index: 110;
+        }
+
+        #game-controls-wrapper {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 320px;
+            z-index: 200; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #game-controls-wrapper.hidden { transform: translateY(320px); }
+
+        #game-controls {
+            height: 100%; background: #220008;
+            display: grid; grid-template-columns: 140px 1fr 240px;
+            align-items: center; padding: 0 15px; border-top: 2px solid var(--gold);
+        }
+
+        #toggle-view-btn {
+            position: absolute; top: -40px; right: 30px;
+            background: var(--gold); color: var(--burgundy);
+            border: none; padding: 8px 25px; font-weight: bold;
+            border-radius: 4px 4px 0 0; cursor: pointer;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5); font-family: 'Georgia', serif; font-size: 0.85rem;
+        }
+
+        .pile-container { 
+            display: flex; flex-direction: column; align-items: center; 
+            color: var(--gold); font-size: 0.75rem; height: 280px; justify-content: center;
+            text-transform: uppercase; letter-spacing: 1px;
+            position: relative;
+        }
+        
+        .archive-hint {
+            font-size: 0.7rem; color: var(--gold); margin-top: 10px; text-align: center; 
+            max-width: 200px; line-height: 1.3; pointer-events: none; font-weight: bold;
+            border: 2px solid var(--gold); padding: 10px; border-radius: 6px; 
+            background: rgba(75, 0, 19, 0.6); box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            letter-spacing: 0.5px;
+        }
+
+        #deck-visual, #archive-visual { position: relative; width: 90px; height: 135px; margin: 10px auto; }
+        
+        #progress-mini-container {
+            width: 160px; margin-top: 15px; text-align: center;
+        }
+        #progress-mini-bar-bg {
+            width: 100%; height: 6px; background: rgba(212, 175, 55, 0.1);
+            border-radius: 3px; overflow: hidden; margin-top: 6px; border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        #progress-mini-bar-fill {
+            width: 10%; height: 100%; background: var(--gold);
+            box-shadow: 0 0 10px var(--gold); transition: width 0.5s ease;
+        }
+        .mini-label { font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; }
+
+        .card-back {
+            width: 90px; height: 135px; background-size: 100% 100%;
+            border-radius: 4px; position: absolute; filter: brightness(0.8);
+            box-shadow: -2px 2px 5px rgba(0,0,0,0.4);
+        }
+
+        #hand-zone { display: flex; justify-content: center; gap: 20px; width: 100%; height: 100%; align-items: center; }
+
+        .card.dragging { cursor: grabbing; z-index: 1000; opacity: 0.9; box-shadow: 0 20px 40px rgba(0,0,0,0.8); transform: scale(1.05); }
+        .card img { width: 100%; height: 100%; object-fit: cover; filter: sepia(0.2) contrast(1.1); pointer-events: none; }
+        
+        .card-cost {
+            position: absolute; top: -12px; right: -12px; background: var(--gold);
+            color: var(--burgundy); width: 32px; height: 32px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-weight: bold;
+            border: 2px solid var(--burgundy); z-index: 10; font-size: 1.1rem; pointer-events: none;
+        }
+
+        .final-box {
+            background: rgba(10,0,5,0.98); padding: 20px; border: 1px solid var(--gold);
+            text-align: center; width: 95%; max-width: 750px; color: var(--light);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            max-height: 280px; display: flex; flex-direction: column;
+        }
+        .final-content {
+            overflow-y: auto; padding-right: 15px; margin-bottom: 15px;
+            scrollbar-width: thin; scrollbar-color: var(--gold) transparent;
+        }
+        .final-content::-webkit-scrollbar { width: 4px; }
+        .final-content::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
         #zoom-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 2000;
-            justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center;
         }
-        #zoom-overlay img { max-width: 95%; max-height: 90%; border: 5px solid white; box-shadow: 0 0 50px var(--gold); }
+        #zoom-overlay img { max-width: 85%; max-height: 85%; border: 1px solid var(--gold); }
+        
+        .flying-card {
+            position: fixed; pointer-events: none; z-index: 9999;
+            background-size: 100% 100%; border-radius: 4px;
+            transition: all 0.6s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+        
+        .audio-btn { 
+            background: var(--burgundy); color: var(--gold); border: 1px solid var(--gold); 
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem;
+            min-width: 90px; font-weight: bold;
+        }
+        input[type=range] { cursor: pointer; width: 50px; accent-color: var(--burgundy); }
     </style>
 </head>
 <body>
 
+<div class="film-grain"></div>
+
 <div id="start-screen">
-    <h1 style="color: var(--gold); margin-top: 30px; font-size: 2.5rem;">ДЕТЕКТИВ ВИКИ</h1>
+    <button class="btn-start" onclick="initGame()">Начать</button>
+</div>
+
+<div id="intro-screen">
+    <h1 style="color: var(--gold); letter-spacing: 5px;">ДЕТЕКТИВ ВИКИ</h1>
     <div class="intro-text">
-        На часах 23:50. Пять минут назад Ромарио запер все двери загородного особняка, в котором вы отмечали твой день рождения, и попросил всех собраться в гостиной. Он подошел к тебе, своей жене, и сказал: «Подарок пропал. Я боюсь, что его украли. Никому не могу доверять, даже себе. Боюсь, придется тебе придется прервать праздник и найти его». <br><br>
-        В этот день что-то должно пойти не так. Ты знаешь, что каждый из них хранит свои тайны, опасные тайны, но почему хотя бы сегодня все не могло пройти без происшествий. Но они и не догадываются о твоей тайне. Что ж, пусть этот вечер станет днем, когда покров тайны будет сорван с вашей компании, и ты станешь первой.<br><br>
+        На часах 23:50. Пять минут назад Ромарио запер все двери загородного особняка, в котором вы отмечали твой день рождения, и попросил всех собраться в гостиной. Он подошел к тебе, своей жене, и сказал: «Подарок пропал. Я боюсь, что его украли. Никому не могу доверять, даже себе. Боюсь, придется тебе прервать праздник и найти его». <br><br>
+        В этот день что-то должно пойти не так. Ты знаешь, что каждый из них хранит свои тайны, опасные тайны, но почему хотя бы сегодня все не могло пройти без происшествий. Но они и не догадываются о твоей тайне. Что ж, пусть этот вечер станет днем, когда покров тайны будет сорван с вашей компании, и ты станешь первой. <br><br>
         Все знают, что ты работаешь успешным медиа-аналитиком, но никто и не догадывается, что это лишь прикрытие. На самом деле твой начальник — это государственное управление по безопасности, а ты — агент секретной контрразведки. Пожалуй, ты больше не хочешь, чтобы это было тайной для твоих лучших друзей. Ты рассказываешь об этом. <br><br>
-        При этих словах каждый из гостей, и даже твой муж Ромарио, заметно забеспокоились. Что происходит в их головах? Какие секреты там хранятся? И самое главное, кто похитил твой подарок? Сумеешь ли ты найти его? И сколько чужих секретов при этом вскроется?<br><br>
-        Прежде чем ты начнешь, помни, что каждая улика имеет свою ценность, но не каждая из них поведет тебя по правильному пути. В процессе расследования ты сможешь убирать карты в архив. В зависимости от того, сколько карт ты убрала в архив, ты сможешь выкладывать все более значимые улики. Ценность каждой улики обозначена в углу под лупой. Чтобы выложить самую ценную улику, тебе нужно убрать в архив 10 улик. Удачи в расследовании!<br><br>
-        Ну и поскольку это лишь штука для теста, в архиве уже есть одна карта. На деле это условие будет написано на карте, которая пойдет в архив первой.
+        При этих словах каждый из гостей, и даже твой муж Ромарио, заметно забеспокоились. Что происходит в их головах? Какие секреты там хранятся? И самое главное, кто похитил твой подарок? Сумеешь ли ты найти его? И сколько чужих секретов при этом вскроется? <br><br>
+        Прежде чем ты начнешь, помни, что каждая улика имеет свою ценность, но не каждая из них поведет тебя по правильному пути. В процессе расследования ты сможешь убирать карты в архив. В зависимости от того, сколько карт ты убрала, ты сможешь выкладывать более значимые улики. Ценность каждой улики обозначена в углу под лупой. Чтобы выложить самую ценную улику, тебе нужно убрать в архив 10 улик. <br><br>
+        Удачи в расследовании!
     </div>
-    <button class="btn-start" onclick="startGame()">Начать расследование</button>
+    <button class="btn-start" onclick="startGame()">К расследованию</button>
 </div>
 
-<div id="status-bar">МАТЕРИАЛЫ ДЕЛА (КЛИКНИ ДЛЯ УВЕЛИЧЕНИЯ)</div>
-
-<div id="table-zone"></div>
-
-<div id="game-controls">
-    <div class="pile-container">
-        <span id="deck-count">Колода: 45</span>
-        <div id="deck-visual" class="card-back"></div>
+<div id="status-bar">
+    <div>
+        <span>МАТЕРИАЛЫ ДЕЛА</span>
+        <span class="hint-text">(НАЖМИ ДЛЯ УВЕЛИЧЕНИЯ)</span>
     </div>
-
-    <div id="hand-zone"></div>
-
-    <div class="pile-container">
-        <span id="archive-count">Архив: 1</span>
-        <div id="archive-visual"></div>
+    <div class="audio-controls">
+        <input type="range" min="0" max="1" step="0.1" value="0.3" oninput="changeVolume(this.value)">
+        <button id="music-toggle" class="audio-btn" onclick="toggleMusic()">МУЗЫКА: ВКЛ</button>
+        <button id="sfx-toggle" class="audio-btn" onclick="toggleSfx()">ЗВУКИ: ВКЛ</button>
     </div>
 </div>
 
-<div id="anim-layer"></div>
-
-<div id="zoom-overlay" onclick="this.style.display='none'">
-    <img id="zoomed-img" src="">
+<div id="table-zone">
+    <div class="zone-hint" id="table-hint">Перетащи карту сюда, чтобы добавить к материалам дела</div>
 </div>
+
+<div id="game-controls-wrapper">
+    <button id="toggle-view-btn" onclick="toggleControls()">ПОКАЗАТЬ СТОЛ</button>
+    <div id="game-controls">
+        <div class="pile-container">
+            <span id="deck-count">КОЛОДА: 47</span>
+            <div id="deck-visual"></div>
+        </div>
+
+        <div id="hand-zone"></div>
+
+        <div class="pile-container">
+            <div id="archive-visual"></div>
+            <div class="archive-hint">Перетащи карту сюда, чтобы добавить в архив и увеличить уровень доступа</div>
+            <div id="progress-mini-container">
+                <div class="mini-label">УРОВЕНЬ ДОСТУПА: <span id="access-level">1</span>/10</div>
+                <div id="progress-mini-bar-bg">
+                    <div id="progress-mini-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="zoom-overlay" onclick="closeZoom()"><img id="zoomed-img" src=""></div>
 
 <script>
-    // --- НАСТРОЙКА РУБАШКИ ---
-    // Вставь сюда ссылку на изображение своей рубашки
-    const cardBackUrl = "https://i.postimg.cc/T33d3Dnf/A4-2.png"; 
+    const musicUrl = "https://www.dropbox.com/scl/fi/gh7ukoms4htc48whcf15o/the-mystery-of-the-old-castle-182681.mp3?rlkey=tqx8vsdxpsv52ziff6nq1enj0&st=i65f08yk&raw=1";
+    const sfxUrl = "https://www.dropbox.com/scl/fi/6aw9ocf0uynv6y7jvs0cb/flipcard-91468.mp3?rlkey=9t64yzbe15fbq9wdppkxuitlc&st=zzn6hibe&raw=1";
 
-    const cardData = [
-        { id: 1, cost: 1, img: "https://i.postimg.cc/25hpmRky/A4-5.png" },
-        { id: 2, cost: 1, img: "https://i.postimg.cc/vmfRMFYB/A4-6.png" },
-        { id: 3, cost: 4, img: "https://i.postimg.cc/BvHWs9Sn/A4-7.png" },
-        { id: 4, cost: 2, img: "https://i.postimg.cc/B60rnYbj/A4-11.png" },
-        { id: 5, cost: 2, img: "https://i.postimg.cc/Qt32d4Ck/A4-14.png" },
-        { id: 6, cost: 3, img: "https://i.postimg.cc/Tw6z3715/A4-12.png" },
-        { id: 7, cost: 2, img: "https://i.postimg.cc/sX4tQYG6/A4-18.png" },
-        { id: 8, cost: 2, img: "https://i.postimg.cc/rmNv01ty/A4-24.png" },
-        { id: 9, cost: 3, img: "https://i.postimg.cc/BvHWs9Sn/A4-7.png" },
-        { id: 10, cost: 1, img: "https://i.postimg.cc/XNxRngbJ/A4-49.png" },
-        { id: 11, cost: 2, img: "https://i.postimg.cc/KjcCn1nk/A4-33.png" },
-        { id: 12, cost: 3, img: "https://i.postimg.cc/C1sWBGfY/A4-23.png" },
-        { id: 13, cost: 5, img: "https://i.postimg.cc/Kz268qjD/A4-13.png" },
-        { id: 14, cost: 6, img: "https://i.postimg.cc/C1g3xP5c/A4-16.png" },
-        { id: 15, cost: 1, img: "https://i.postimg.cc/RhC2cWcK/A4-34.png" },
-        { id: 16, cost: 4, img: "https://i.postimg.cc/LXpc8C5T/A4-15.png" },
-        { id: 17, cost: 6, img: "https://i.postimg.cc/fyW1xVxW/A4-28.png" },
-        { id: 18, cost: 7, img: "https://i.postimg.cc/TwJZLV5c/A4-17.png" },
-        { id: 19, cost: 3, img: "https://i.postimg.cc/D0fRqSqk/A4-25.png" },
-        { id: 20, cost: 5, img: "https://i.postimg.cc/8ckxh7hG/A4-26.png" },
-        { id: 21, cost: 7, img: "https://i.postimg.cc/pTJghfnR/A4-22.png" },
-        { id: 22, cost: 8, img: "https://i.postimg.cc/J07Sbsb3/A4-35.png" },
-        { id: 23, cost: 3, img: "https://i.postimg.cc/XY0fD7Kz/A4-51.png" },
-        { id: 24, cost: 4, img: "https://i.postimg.cc/fLf6tcSF/A4-19.png" },
-        { id: 25, cost: 4, img: "https://i.postimg.cc/3RFP4X0c/A4-20.png" },
-        { id: 26, cost: 5, img: "https://i.postimg.cc/fyW1xVxw/A4-27.png" },
-        { id: 27, cost: 8, img: "https://i.postimg.cc/RhPyGvR8/A4-46.png" },
-        { id: 28, cost: 4, img: "https://i.postimg.cc/QNS2jq3d/A4-48.png" },
-        { id: 29, cost: 5, img: "https://i.postimg.cc/8cy9wTHj/A4-38.png" },
-        { id: 30, cost: 4, img: "https://i.postimg.cc/sxfbpMpX/A4-31.png" },
-        { id: 31, cost: 9, img: "https://i.postimg.cc/d3WpnJBN/A4-44.png" },
-        { id: 32, cost: 10, img: "https://i.postimg.cc/nrVNvXv4/A4-37.png" },
-        { id: 33, cost: 5, img: "https://i.postimg.cc/ZRx1B8yk/A4-21.png" },
-        { id: 34, cost: 6, img: "https://i.postimg.cc/44wDX1gt/A4-52.png" },
-        { id: 35, cost: 7, img: "https://i.postimg.cc/Vvs2jJjL/A4-29.png" },
-        { id: 36, cost: 9, img: "https://i.postimg.cc/v8XJGvsm/A4-50.png" },
-        { id: 37, cost: 10, img: "https://i.postimg.cc/x8shg9RM/A4-39.png" },
-        { id: 38, cost: 6, img: "https://i.postimg.cc/pr04kPZq/A4-43.png" },
-        { id: 39, cost: 7, img: "https://i.postimg.cc/vT8CW4Wm/A4-30.png" },
-        { id: 40, cost: 8, img: "https://i.postimg.cc/PJ69Kd4F/A4-45.png" },
-        { id: 41, cost: 10, img: "https://i.postimg.cc/3r9s3ZT3/A4-47.png" },
-        { id: 42, cost: 8, img: "https://i.postimg.cc/Znf2jJcP/A4-40.png" },
-        { id: 43, cost: 9, img: "https://i.postimg.cc/7hBdXqVN/A4-41.png" },
-        { id: 44, cost: 10, img: "https://i.postimg.cc/BbhkNJgN/A4-42.png" },
-        { id: 45, cost: 7, img: "https://i.postimg.cc/gc4CGKW3/A4-53.png" }
+    const bgMusic = new Audio(musicUrl);
+    bgMusic.loop = true;
+    bgMusic.volume = 0.3;
+
+    const sfxPool = Array.from({length: 5}, () => new Audio(sfxUrl));
+    let currentSfxIdx = 0, isMusicMuted = false, isSfxMuted = false;
+
+    function initGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('intro-screen').style.display = 'flex';
+        bgMusic.play().catch(() => {});
+    }
+
+    function toggleMusic() {
+        isMusicMuted = !isMusicMuted;
+        bgMusic.muted = isMusicMuted;
+        document.getElementById('music-toggle').innerText = isMusicMuted ? "МУЗЫКА: ВЫКЛ" : "МУЗЫКА: ВКЛ";
+    }
+
+    function changeVolume(v) {
+        bgMusic.volume = v;
+    }
+
+    function toggleSfx() {
+        isSfxMuted = !isSfxMuted;
+        document.getElementById('sfx-toggle').innerText = isSfxMuted ? "ЗВУКИ: ВЫКЛ" : "ЗВУКИ: ВКЛ";
+    }
+
+    function playSfx() {
+        if (isSfxMuted) return;
+        const s = sfxPool[currentSfxIdx];
+        s.currentTime = 0;
+        s.play().catch(() => {});
+        currentSfxIdx = (currentSfxIdx + 1) % sfxPool.length;
+    }
+
+    const cardBackUrl = "https://i.postimg.cc/Qx5Y4jSR/Rubaska2.png";
+    const realCardData = [
+        { id: 1, img: "https://i.postimg.cc/Fs2G3w42/1.png", cost: 1 },
+        { id: 2, img: "https://i.postimg.cc/dtznrgYf/2.png", cost: 1 },
+        { id: 3, img: "https://i.postimg.cc/Hsf3XFgh/3.png", cost: 2 },
+        { id: 4, img: "https://i.postimg.cc/15LMwbQ2/4.png", cost: 1 },
+        { id: 5, img: "https://i.postimg.cc/Bv3gwDt8/5.png", cost: 2 },
+        { id: 6, img: "https://i.postimg.cc/gJSHJTsX/6.png", cost: 3 },
+        { id: 7, img: "https://i.postimg.cc/ydQydbjt/7.png", cost: 2 },
+        { id: 8, img: "https://i.postimg.cc/tJstVNvr/8.png", cost: 2 },
+        { id: 9, img: "https://i.postimg.cc/J0S33H9X/9.png", cost: 3 },
+        { id: 10, img: "https://i.postimg.cc/J7FQCSGC/10.png", cost: 4 },
+        { id: 11, img: "https://i.postimg.cc/7LYB78kQ/11.png", cost: 3 },
+        { id: 12, img: "https://i.postimg.cc/y8mG2Gms/12.png", cost: 4 },
+        { id: 13, img: "https://i.postimg.cc/vB0L7N4r/13.png", cost: 5 },
+        { id: 14, img: "https://i.postimg.cc/rFzY6d9j/14.png", cost: 4 },
+        { id: 15, img: "https://i.postimg.cc/3RxN7jGr/15.png", cost: 4 },
+        { id: 16, img: "https://i.postimg.cc/tTC922R4/16.png", cost: 6 },
+        { id: 17, img: "https://i.postimg.cc/g2pGq3N9/17.png", cost: 5 },
+        { id: 18, img: "https://i.postimg.cc/7LC1W6kH/18.png", cost: 5 },
+        { id: 19, img: "https://i.postimg.cc/J7F3xLBy/19.png", cost: 6 },
+        { id: 20, img: "https://i.postimg.cc/0j0vW1S4/20.png", cost: 7 },
+        { id: 21, img: "https://i.postimg.cc/JhrDqBq0/21.png", cost: 6 },
+        { id: 22, img: "https://i.postimg.cc/g0K539m3/22.png", cost: 6 },
+        { id: 23, img: "https://i.postimg.cc/zX8WvLhM/23.png", cost: 7 },
+        { id: 24, img: "https://i.postimg.cc/6p2y8k9n/24.png", cost: 8 },
+        { id: 25, img: "https://i.postimg.cc/pTvSg19k/25.png", cost: 7 },
+        { id: 26, img: "https://i.postimg.cc/bNfRj7V7/26.png", cost: 7 },
+        { id: 27, img: "https://i.postimg.cc/k47tX6Xm/27.png", cost: 8 },
+        { id: 28, img: "https://i.postimg.cc/Xv0j0K3q/28.png", cost: 9 },
+        { id: 29, img: "https://i.postimg.cc/mD8Z8T8L/29.png", cost: 8 },
+        { id: 30, img: "https://i.postimg.cc/hG0fS9Lz/30.png", cost: 8 },
+        { id: 31, img: "https://i.postimg.cc/ncC0G0Yp/31.png", cost: 9 },
+        { id: 32, img: "https://i.postimg.cc/xT0gWvWz/32.png", cost: 10 },
+        { id: 33, img: "https://i.postimg.cc/3N0G0G0G/33.png", cost: 9 },
+        { id: 34, img: "https://i.postimg.cc/3N0G0G0G/34.png", cost: 9 },
+        { id: 35, img: "https://i.postimg.cc/3N0G0G0G/35.png", cost: 10 },
+        { id: 36, img: "https://i.postimg.cc/3N0G0G0G/36.png", cost: 1 },
+        { id: 37, img: "https://i.postimg.cc/3N0G0G0G/37.png", cost: 1 },
+        { id: 38, img: "https://i.postimg.cc/3N0G0G0G/38.png", cost: 1 },
+        { id: 39, img: "https://i.postimg.cc/3N0G0G0G/39.png", cost: 1 },
+        { id: 40, img: "https://i.postimg.cc/3N0G0G0G/40.png", cost: 1 },
+        { id: 41, img: "https://i.postimg.cc/3N0G0G0G/41.png", cost: 1 },
+        { id: 42, img: "https://i.postimg.cc/3N0G0G0G/42.png", cost: 1 },
+        { id: 43, img: "https://i.postimg.cc/3N0G0G0G/43.png", cost: 1 },
+        { id: 44, img: "https://i.postimg.cc/3N0G0G0G/44.png", cost: 1 },
+        { id: 45, img: "https://i.postimg.cc/3N0G0G0G/45.png", cost: 1 },
+        { id: 46, img: "https://i.postimg.cc/3N0G0G0G/46.png", cost: 1 },
+        { id: 47, img: "https://i.postimg.cc/3N0G0G0G/47.png", cost: 1 }
     ];
 
-    let deck = [...cardData].reverse();
-    let hand = [];
-    let table = [];
-    let archiveCount = 1;
-    let isBusy = false;
-
-    // Установка рубашки
-    document.querySelectorAll('.card-back').forEach(el => {
-        el.style.backgroundImage = `url(${cardBackUrl})`;
-    });
+    let deck = [], hand = [], table = [], archiveCount = 0;
 
     function startGame() {
-        document.getElementById('start-screen').style.display = 'none';
-        initialDraw();
+        document.getElementById('intro-screen').style.display = 'none';
+        deck = [...realCardData].sort(() => Math.random() - 0.5);
+        hand = deck.splice(0, 5);
+        updateUI();
     }
 
-    async function initialDraw() {
-        for(let i=0; i<3; i++) {
-            await drawCardAnim();
+    function toggleControls() {
+        const wrap = document.getElementById('game-controls-wrapper');
+        const btn = document.getElementById('toggle-view-btn');
+        wrap.classList.toggle('hidden');
+        btn.innerText = wrap.classList.contains('hidden') ? "ПОКАЗАТЬ РУКУ" : "ПОКАЗАТЬ СТОЛ";
+    }
+
+    function createCardElement(data, isHand = true) {
+        const c = document.createElement('div');
+        c.className = 'card' + (isHand ? '' : ' table-card');
+        if (!isHand) {
+            const rot = (Math.random() * 10 - 5) + 'deg';
+            c.style.setProperty('--rand-rot', rot);
+            c.style.transform = `rotate(${rot})`;
         }
-        render();
-    }
-
-    function createFlyingCard(startRect, isBack = true) {
-        const fly = document.createElement('div');
-        fly.className = 'flying-card ' + (isBack ? 'card-back' : 'card');
-        if(isBack) fly.style.backgroundImage = `url(${cardBackUrl})`;
-        fly.style.left = startRect.left + 'px';
-        fly.style.top = startRect.top + 'px';
-        document.getElementById('anim-layer').appendChild(fly);
-        return fly;
-    }
-
-    async function drawCardAnim() {
-        if (deck.length === 0 || hand.length >= 3) return;
-        isBusy = true;
-        const card = deck.pop();
         
-        const startEl = document.getElementById('deck-visual');
-        const fly = createFlyingCard(startEl.getBoundingClientRect(), true);
-        
-        render();
-        await new Promise(r => setTimeout(r, 50));
-        
-        fly.style.left = '50%';
-        fly.style.top = (window.innerHeight - 300) + 'px';
-        fly.style.transform = 'translateX(-50%) rotateY(180deg)';
+        c.innerHTML = `
+            <div class="card-cost">🔍${data.cost}</div>
+            <img src="${data.img}" onclick="zoomCard('${data.img}')">
+        `;
 
-        await new Promise(r => setTimeout(r, 600));
-        hand.push(card);
-        fly.remove();
-        isBusy = false;
-        render();
-    }
+        if (isHand) {
+            c.draggable = true;
+            c.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('cardId', data.id);
+                c.classList.add('dragging');
+            });
+            c.addEventListener('dragend', () => c.classList.remove('dragging'));
+            
+            // Touch
+            c.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                c.dataset.startX = touch.clientX;
+                c.dataset.startY = touch.clientY;
+                c.classList.add('dragging');
+            }, {passive: true});
 
-    async function playCard(idx) {
-        if (isBusy) return;
-        const card = hand[idx];
-        if (archiveCount < card.cost) {
-            alert("Мало опыта в архиве!");
-            return;
+            c.addEventListener('touchend', (e) => {
+                c.classList.remove('dragging');
+                const touch = e.changedTouches[0];
+                const tableRect = document.getElementById('table-zone').getBoundingClientRect();
+                const archiveRect = document.getElementById('archive-visual').getBoundingClientRect();
+                
+                if (touch.clientY < tableRect.bottom && touch.clientY > tableRect.top) {
+                    playCardById(data.id);
+                } else if (touch.clientX > archiveRect.left && touch.clientX < archiveRect.right &&
+                           touch.clientY > archiveRect.top && touch.clientY < archiveRect.bottom) {
+                    archiveCardById(data.id);
+                }
+            });
         }
-
-        isBusy = true;
-        const cardEls = document.querySelectorAll('#hand-zone .card');
-        const startRect = cardEls[idx].getBoundingClientRect();
-        
-        const fly = createFlyingCard(startRect, false);
-        fly.innerHTML = cardEls[idx].innerHTML;
-        fly.style.background = "white";
-        
-        hand.splice(idx, 1);
-        render();
-
-        fly.style.top = '100px';
-        fly.style.left = '50%';
-        fly.style.transform = 'translateX(-50%) scale(0.6)';
-        fly.style.opacity = '0';
-
-        await new Promise(r => setTimeout(r, 600));
-        table.push(card);
-        fly.remove();
-        
-        await drawCardAnim();
-        isBusy = false;
-        render();
+        return c;
     }
 
-    async function discardToArchive(idx) {
-        if (isBusy) return;
-        isBusy = true;
-        
-        const cardEls = document.querySelectorAll('#hand-zone .card');
-        const startRect = cardEls[idx].getBoundingClientRect();
-        const targetRect = document.getElementById('archive-visual').getBoundingClientRect();
-        
-        const fly = createFlyingCard(startRect, false);
-        fly.innerHTML = cardEls[idx].innerHTML;
-        fly.style.background = "white";
-
-        hand.splice(idx, 1);
-        render();
-
-        await new Promise(r => setTimeout(r, 50));
-        fly.style.left = targetRect.left + 'px';
-        fly.style.top = targetRect.top + 'px';
-        fly.style.transform = 'rotateY(180deg) scale(0.5)';
-
-        await new Promise(r => setTimeout(r, 600));
-        archiveCount++;
-        fly.remove();
-        
-        await drawCardAnim();
-        isBusy = false;
-        render();
-    }
-
-    function render() {
-        const handZone = document.getElementById('hand-zone');
-        handZone.innerHTML = '';
-        hand.forEach((card, i) => {
-            const cardEl = document.createElement('div');
-            cardEl.className = 'card';
-            cardEl.innerHTML = `
-                <div class="card-cost">${card.cost}</div>
-                <img src="${card.img}" onclick="zoom('${card.img}')">
-                <div class="card-actions">
-                    <button class="btn-play ${archiveCount >= card.cost ? '' : 'disabled'}" onclick="playCard(${i})">На стол</button>
-                    <button class="btn-discard" onclick="discardToArchive(${i})">В архив</button>
-                </div>
-            `;
-            handZone.appendChild(cardEl);
-        });
-
-        const tableZone = document.getElementById('table-zone');
-        tableZone.innerHTML = '';
-        table.forEach(card => {
-            const cardEl = document.createElement('div');
-            cardEl.className = 'card card-table';
-            cardEl.innerHTML = `<img src="${card.img}" onclick="zoom('${card.img}')">`;
-            tableZone.appendChild(cardEl);
-        });
-
-        document.getElementById('deck-count').innerText = `Колода: ${deck.length}`;
-        document.getElementById('archive-count').innerText = `Архив: ${archiveCount}`;
-
-        const archVis = document.getElementById('archive-visual');
-        archVis.innerHTML = '';
-        const displayLimit = Math.min(archiveCount, 8); 
-        for(let i=0; i < displayLimit; i++) {
-            const back = document.createElement('div');
-            back.className = 'card-back archive-offset-card';
-            back.style.backgroundImage = `url(${cardBackUrl})`;
-            back.style.left = (i * 2) + 'px';
-            back.style.top = -(i * 2) + 'px';
-            back.style.width = '90px';
-            back.style.height = '135px';
-            archVis.appendChild(back);
-        }
-
-        if (hand.length === 0 && deck.length === 0) {
-            showFinalButton();
+    function playCardById(id) {
+        const idx = hand.findIndex(c => c.id === id);
+        if (idx > -1 && hand[idx].cost <= archiveCount) {
+            const card = hand.splice(idx, 1)[0];
+            table.push(card);
+            playSfx();
+            if (deck.length > 0) hand.push(deck.splice(0,1)[0]);
+            updateUI();
+            checkWin();
         }
     }
 
-    function zoom(src) {
+    function archiveCardById(id) {
+        const idx = hand.findIndex(c => c.id === id);
+        if (idx > -1) {
+            hand.splice(idx, 1);
+            archiveCount++;
+            playSfx();
+            if (deck.length > 0) hand.push(deck.splice(0,1)[0]);
+            updateUI();
+        }
+    }
+
+    function zoomCard(src) {
         document.getElementById('zoomed-img').src = src;
         document.getElementById('zoom-overlay').style.display = 'flex';
     }
 
-    function showFinalButton() {
-        const hz = document.getElementById('hand-zone');
-        hz.innerHTML = `<div style="text-align:center">
-            <p style="font-size:1rem; color: var(--gold); font-weight:bold;">РАССЛЕДОВАНИЕ ЗАВЕРШЕНО <br><br>
-            Все важные улики перед тобой. Ты можешь еще раз изучить их. Когда будешь готова подвести итоги своего расследования, свяжись со своим коллегой из секретной службы контрразведки Анной Тень.</p>
-            <a href="https://t.me/AnnaShadowBot" class="btn-start" style="padding:15px 30px; text-decoration:none; display:inline-block">Связаться с Анной Тень</a>
-        </div>`;
+    function closeZoom() { document.getElementById('zoom-overlay').style.display = 'none'; }
+
+    const tableZone = document.getElementById('table-zone');
+    tableZone.addEventListener('dragover', (e) => e.preventDefault());
+    tableZone.addEventListener('drop', (e) => {
+        const id = parseInt(e.dataTransfer.getData('cardId'));
+        playCardById(id);
+    });
+
+    const archVisual = document.getElementById('archive-visual');
+    archVisual.addEventListener('dragover', (e) => e.preventDefault());
+    archVisual.addEventListener('drop', (e) => {
+        const id = parseInt(e.dataTransfer.getData('cardId'));
+        archiveCardById(id);
+    });
+
+    function checkWin() {
+        if (table.length >= 15) {
+            const box = document.createElement('div');
+            box.style.position = 'fixed'; box.style.top = '0'; box.style.left = '0';
+            box.style.width = '100%'; box.style.height = '100%';
+            box.style.backgroundColor = 'rgba(0,0,0,0.9)'; box.style.zIndex = '5000';
+            box.style.display = 'flex'; box.style.justifyContent = 'center'; box.style.alignItems = 'center';
+            
+            box.innerHTML = `
+                <div class="final-box">
+                    <h2 style="color:var(--gold); margin-top:0;">РАССЛЕДОВАНИЕ ЗАВЕРШЕНО</h2>
+                    <div class="final-content">
+                        <p>Ты собрала достаточно улик, чтобы восстановить картину вечера. Твой муж, Ромарио, не случайно потерял подарок. Он хотел проверить тебя, твои чувства и твою преданность. Но он и не подозревал, что твоя работа — это не просто анализ медиа. Твоя тайна раскрыта, и теперь ваша жизнь никогда не будет прежней. Ты нашла подарок, но цена этой находки — правда, которая изменит всё.</p>
+                    </div>
+                    <button class="btn-start" onclick="location.reload()">НАЧАТЬ ЗАНОВО</button>
+                </div>
+            `;
+            document.body.appendChild(box);
+        }
     }
+
+    function updateUI() {
+        const hz = document.getElementById('hand-zone'); hz.innerHTML = '';
+        hand.forEach(c => hz.appendChild(createCardElement(c, true)));
+
+        const tz = document.getElementById('table-zone'); 
+        const existingTableCards = tz.querySelectorAll('.card').length;
+        if (table.length > existingTableCards) {
+            for (let i = existingTableCards; i < table.length; i++) {
+                tz.appendChild(createCardElement(table[i], false));
+            }
+        }
+        
+        document.getElementById('table-hint').style.display = table.length > 0 ? 'none' : 'block';
+
+        const dv = document.getElementById('deck-visual'); dv.innerHTML = '';
+        const av = document.getElementById('archive-visual'); av.innerHTML = '';
+        const fill = document.getElementById('progress-mini-bar-fill');
+        const access = document.getElementById('access-level');
+        const percent = Math.min((archiveCount / 10) * 100, 100);
+        fill.style.width = percent + '%';
+        access.innerText = archiveCount; 
+        
+        for(let i=0; i<Math.min(deck.length, 5); i++) {
+            const b = document.createElement('div'); b.className = 'card-back';
+            b.style.left = (i*2)+'px'; b.style.top = -(i*2)+'px';
+            b.style.backgroundImage = `url(${cardBackUrl})`; dv.appendChild(b);
+        }
+        for(let i=0; i<Math.min(archiveCount, 5); i++) {
+            const b = document.createElement('div'); b.className = 'card-back';
+            b.style.left = (i*2)+'px'; b.style.top = -(i*2)+'px';
+            b.style.backgroundImage = `url(${cardBackUrl})`; av.appendChild(b);
+        }
+        document.getElementById('deck-count').innerText = `КОЛОДА: ${deck.length}`;
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === "1") playCard(0); if (e.key === "2") discardToArchive(0);
+        if (e.key === "3") playCard(1); if (e.key === "4") discardToArchive(1);
+        if (e.key === "5") playCard(2); if (e.key === "6") discardToArchive(2);
+        if (e.key === "7") playCard(3); if (e.key === "8") discardToArchive(3);
+        if (e.key === "9") playCard(4); if (e.key === "0") discardToArchive(4);
+    });
+
+    function playCard(idx) { if (hand[idx]) playCardById(hand[idx].id); }
+    function discardToArchive(idx) { if (hand[idx]) archiveCardById(hand[idx].id); }
+
 </script>
+
 </body>
 </html>
